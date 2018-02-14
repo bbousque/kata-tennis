@@ -1,7 +1,7 @@
 package fr.bbt.nexity.tennis
 
 import fr.bbt.nexity.tennis.TennisEntities.PointValueEnum._
-import fr.bbt.nexity.tennis.TennisEntities.{PFGameScore, PFSetScore}
+import fr.bbt.nexity.tennis.TennisEntities.{GameScore, PFGameScore, PFSetScore}
 
 /**
   * Règles de gestion des points pour le jeu et le set
@@ -39,13 +39,34 @@ trait TennisRules {
   val gameRules: PFGameScore = deuceRule.orElse(normalRule)
 
   /**
+    * Règle déterminant si le set est gagnant
+    */
+  object winSetRule {
+    def unapply(score: (Int,Int)): Boolean = {
+      val (s1, s2) = score
+
+      (s1 == 6 && s2 < 5 || s2 == 6 && s1 < 5) || (s1 == 7 && s2 == 5 || s2 == 7 && s1 == 5)
+    }
+  }
+
+  /**
+    * Règle déterminant si le set doit comporter un jeu supplémentaire
+    */
+  object extraGameSetRule {
+    def unapply(score: (Int,Int)): Boolean = {
+      val (s1, s2) = score
+
+      s2 == 6 && s1 == 5 || s2 == 6 && s1 == 5
+    }
+  }
+
+  /**
     * Gestion du score pour le set dans les cas spécifiques.
     * Si le set n'est pas gagné, on renvoit la valeur dans le membre de gauche. Sinon, la valeur est à droite.
     */
   val setRule : PFSetScore = {
-    case (s1, s2) if s1 == 6 && s2 < 5 || s2 == 6 && s1 < 5  => Right((s1,s2))
-    case (s1, s2) if s2 == 6 && s1 == 5 || s2 == 6 && s1 == 5  => Left((s1,s2))
-    case (s1, s2) if s1 == 7 && s2 == 5 || s2 == 7 && s1 == 5  => Right((s1,s2))
+    case score @ winSetRule() => Right(score)
+    case score @ extraGameSetRule() => Left(score)
   }
 
   /**
