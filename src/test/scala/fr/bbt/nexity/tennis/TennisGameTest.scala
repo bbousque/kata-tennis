@@ -1,6 +1,7 @@
 package fr.bbt.nexity.tennis
 
 import fr.bbt.nexity.tennis.TennisEntities.PlayerEnum.{PlayerOne, PlayerTwo}
+import fr.bbt.nexity.tennis.TennisEntities.PointValueEnum.{Quinze, Zero}
 import fr.bbt.nexity.tennis.TennisEntities.Score
 import org.scalatest.FunSuite
 
@@ -16,13 +17,14 @@ class TennisGameTest extends FunSuite {
     import TennisHelpers._
     val coups = List(PlayerOne,PlayerOne,PlayerTwo,PlayerTwo,PlayerOne,PlayerTwo,PlayerOne,PlayerTwo,PlayerOne,PlayerOne,PlayerOne)
 
-    coups.foldLeft(List(Score())) {
+    val scores = coups.foldLeft(List(Score())) {
       (agg,a) => agg :+ agg.last.updateScore(a)
     }
-      .foreach(println)
+
+    scores.foreach(println)
 
     assert(
-      true
+      scores.last equals Score((Quinze,Zero),(1,0),List())
     )
   }
 }

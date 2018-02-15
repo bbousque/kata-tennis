@@ -1,18 +1,22 @@
 package fr.bbt.nexity.tennis
 
-import fr.bbt.nexity.tennis.TennisEntities.PlayerEnum.{Player, PlayerOne, PlayerTwo}
+import fr.bbt.nexity.tennis.TennisEntities.PlayerEnum.{PlayerOne, PlayerTwo}
 import fr.bbt.nexity.tennis.TennisEntities.PointValueEnum.{Win, Zero}
-import fr.bbt.nexity.tennis.TennisEntities.Score
+import fr.bbt.nexity.tennis.TennisEntities.{GameScore, Player, PointValue, Score}
 
-/**
-  * Fonctions applicatives
-  */
 object TennisHelpers {
 
-  /**
-    * Fonctions applicables sur le score
-    */
   implicit class ScoreHelper(score: Score) extends TennisRules {
+
+    def addPoint[T](addFn : T => T) = (player : Player, score : (T,T)) => {
+      player match {
+        case PlayerOne => (addFn(score._1), score._2)
+        case PlayerTwo => (score._1, addFn(score._2))
+      }
+    }: (T, T)
+
+    def addGamePoint = addPoint[PointValue](increment)
+    def addSetPoint = addPoint[Int]( point => point + 1)
 
     /**
       * Gain d'un point pour le joueur précisé
@@ -20,17 +24,11 @@ object TennisHelpers {
       * @return         Le score actualisé avec le gain du point pour le jeu
       */
     def winPoint(player: Player): Score = score.copy(
-      gameScore = gameRules(
-        player match {
-          case PlayerOne => (increment(score.gameScore._1), score.gameScore._2)
-          case PlayerTwo => (score.gameScore._1, increment(score.gameScore._2))
-        }
-      )
+      gameScore = gameRules(addGamePoint(player, score.gameScore))
     )
 
     /**
-      * Mise à jour du score du set en fonction de la mise à jour du score
-      * @return   Le score du match mis à jour après gain du point
+      * Mise à jour du score du set
       */
     def updateSetScore(): Score = {
       /* Si le jeu est gagnant, on met à jour le score du set */

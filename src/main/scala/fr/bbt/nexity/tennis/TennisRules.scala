@@ -1,22 +1,19 @@
 package fr.bbt.nexity.tennis
 
 import fr.bbt.nexity.tennis.TennisEntities.PointValueEnum._
-import fr.bbt.nexity.tennis.TennisEntities.{GameScore, PFGameScore, PFSetScore}
+import fr.bbt.nexity.tennis.TennisEntities._
 
-/**
-  * Règles de gestion des points pour le jeu et le set
-  */
 trait TennisRules {
 
   /**
-    * Incrément des points d'un jeu
-    * @param point  La valeur du point actuel
-    * @return       La valeur actualisée
+    * Incrémente les points d'un jeu
     */
   def increment(point : PointValue): PointValue = point match {
     case Deuce => Advantage
     case Quarante | Advantage => Win
-    case _ => classicGame(classicGame.indexOf(point)+1)
+    case Zero => Quinze
+    case Quinze => Trente
+    case Trente => Quarante
   }
 
   /**
@@ -26,16 +23,10 @@ trait TennisRules {
     case (Advantage, Advantage) | (Quarante, Quarante)  => (Deuce, Deuce)
   }
 
-  /**
-    * Cas de gestion pour la règle normal. On ne modifie pas la valeur.
-    */
   val normalRule : PFGameScore = {
     case s  => s
   }
 
-  /**
-    * Constitution de la méthode globale de gestion des règles du jeu
-    */
   val gameRules: PFGameScore = deuceRule.orElse(normalRule)
 
   /**
@@ -43,9 +34,12 @@ trait TennisRules {
     */
   object winSetRule {
     def unapply(score: (Int,Int)): Boolean = {
-      val (s1, s2) = score
-
-      (s1 == 6 && s2 < 5 || s2 == 6 && s1 < 5) || (s1 == 7 && s2 == 5 || s2 == 7 && s1 == 5)
+      score match {
+        case (6, p) if p < 5 => true
+        case (p, 6) if p < 5 => true
+        case (7,5) | (5,7) => true
+        case _ => false
+      }
     }
   }
 
@@ -54,9 +48,10 @@ trait TennisRules {
     */
   object extraGameSetRule {
     def unapply(score: (Int,Int)): Boolean = {
-      val (s1, s2) = score
-
-      s2 == 6 && s1 == 5 || s2 == 6 && s1 == 5
+      score match {
+        case (6,5) | (5,6) => true
+        case _ => false
+      }
     }
   }
 

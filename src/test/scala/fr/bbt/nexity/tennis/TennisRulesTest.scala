@@ -12,8 +12,10 @@ class TennisRulesTest extends FunSuite with TennisRules {
     * On teste la progression du score pour un jeu normal
     */
   test("Increment Score Game") {
+    val classicGame = Seq(Zero, Quinze, Trente, Quarante)
+
     val resultGame = for {
-      s <- classicGame.take(4)
+      s <- classicGame
     } yield increment(s)
 
     assert(
@@ -25,14 +27,15 @@ class TennisRulesTest extends FunSuite with TennisRules {
     * On teste la règle DEUCE dans le cas d'un jeu disputé
     */
   test("DEUCE Rule") {
-
-    val case1 = gameRules((increment(Trente), Quarante)) equals (Deuce,Deuce)
-    val case2 = gameRules((increment(Deuce), Deuce)) equals (Advantage,Deuce)
-    val case3 = gameRules((increment(Advantage), Deuce)) equals (Win,Deuce)
-    val case4 = gameRules((increment(Deuce), Advantage)) equals (Deuce,Deuce)
+    val rulesResult = List(
+      gameRules((increment(Trente), Quarante)) equals (Deuce,Deuce),
+      gameRules((increment(Deuce), Deuce)) equals (Advantage,Deuce),
+      gameRules((increment(Advantage), Deuce)) equals (Win,Deuce),
+      gameRules((increment(Deuce), Advantage)) equals (Deuce,Deuce)
+    )
 
     assert(
-      case1 && case2 && case3 && case4
+      !rulesResult.contains(false)
     )
   }
 
